@@ -1,5 +1,5 @@
 /*********
-Robot.c 
+Abus.c 
 Christian H
 *********/
 
@@ -9,17 +9,12 @@ Christian H
 #include <ESPAsyncWebServer.h>
 #include "SPIFFS.h"
 #include <Servo.h>
-#include <AccelStepper.h>
 
 /* User defines */
 //Motor Pins
 #define m1Pin         22
 #define m2Pin         23
 #define MOTDEFAULT    1000
-#define StepPin       18
-#define DirPin        19
-#define StepPerRev    200
-#define motorInterfaceType 1
 
 /* User Type defines */
 struct Motor_t {
