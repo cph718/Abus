@@ -3,8 +3,16 @@ ReloadStepper.c
 Christian H
 *********/
 
-#define StepPin       18
-#define DirPin        19
-#define StepPerRev    200
-#define motorInterfaceType 1
 #include <AccelStepper.h>
+
+
+
+
+void Reload_InitStepper(int DirectionPin)
+{
+  //Set Stepper drive clockwise
+  digitalWrite(DirPin, HIGH);
+  stepper.setMaxSpeed(5000);
+  stepper.setAcceleration(30);
+  Serial.println("Stepper Initialised");
+}

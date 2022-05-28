@@ -3,18 +3,30 @@ Abus.c
 Christian H
 *********/
 
+/*
+ * TODO
+ */
+
 /* Included libraries */
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "SPIFFS.h"
 #include <Servo.h>
+#include <AccelStepper.h>
 
 /* User defines */
 //Motor Pins
 #define m1Pin         22
 #define m2Pin         23
 #define MOTDEFAULT    1000
+
+#define StepPin       18
+#define DirPin        19
+#define StepPerRev    200
+#define motorInterfaceType 1
+
+#define LimitSwitch   4
 
 /* User Type defines */
 struct Motor_t {
@@ -24,6 +36,8 @@ struct Motor_t {
   int curSpeed;
   int Ramp;
 };
+
+AccelStepper stepper = AccelStepper(motorInterfaceType, StepPin, DirPin);
 
 /* Global Variables */
 // REPLACE WITH YOUR NETWORK CREDENTIALS
@@ -44,26 +58,22 @@ Motor_t rightMotor;
 Motor_t leftMotor;
 
 int gInitFlag = 0;
-int gStepFlag = 0;
-int gStepDelay = 0;
 
 AsyncWebServer server(80);
 
-AccelStepper stepper = AccelStepper(motorInterfaceType, StepPin, DirPin);
 
 /*****************************************************************************************************************************/
 
-void setup() {  
+void setup() {
+  Serial.begin(115200);  
 //  // Initialise Motor Pins and start values
   rightMotor.Pin = m1Pin;
   leftMotor.Pin = m2Pin;
 
-  //Set Stepper drive clockwise
-  digitalWrite(DirPin, HIGH);
-  stepper.setMaxSpeed(5000);
-  stepper.setAcceleration(30);
+  Reload_InitStepper(DirPin);
 
-  Serial.begin(115200);
+  pinMode(LimitSwitch, INPUT_PULLDOWN);
+  
 
     // Initialize SPIFFS
   if(!SPIFFS.begin(true))
@@ -188,7 +198,13 @@ void setup() {
 /*****************************************************************************************************************************/
 void loop() 
 {
-//  stepper.runSpeed();
+  stepper.runSpeed();
+
+if(!digitalRead(LimitSwitch))
+{
+  stepper.setSpeed(0);
+}
+  
 //  if(gStepFlag == 1)
 //  {
 //      // Spin 1 revolution
