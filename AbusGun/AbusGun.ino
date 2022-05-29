@@ -21,11 +21,6 @@ Christian H
 #define m2Pin         23
 #define MOTDEFAULT    1000
 
-#define StepPin       18
-#define DirPin        19
-#define StepPerRev    200
-#define motorInterfaceType 1
-
 #define LimitSwitch   4
 
 /* User Type defines */
@@ -36,8 +31,6 @@ struct Motor_t {
   int curSpeed;
   int Ramp;
 };
-
-AccelStepper stepper = AccelStepper(motorInterfaceType, StepPin, DirPin);
 
 /* Global Variables */
 // REPLACE WITH YOUR NETWORK CREDENTIALS
@@ -66,14 +59,19 @@ AsyncWebServer server(80);
 
 void setup() {
   Serial.begin(115200);  
-//  // Initialise Motor Pins and start values
+
+  Serial.println("XTAL Freq:");
+  Serial.println(getXtalFrequencyMhz());
+  Serial.println("CPU Freq:");
+  Serial.println(getCpuFrequencyMhz());
+  
+  // Initialise Motor Pins and start values
   rightMotor.Pin = m1Pin;
   leftMotor.Pin = m2Pin;
 
-  Reload_InitStepper(DirPin);
+  Reload_InitStepper();
 
   pinMode(LimitSwitch, INPUT_PULLDOWN);
-  
 
     // Initialize SPIFFS
   if(!SPIFFS.begin(true))
@@ -162,12 +160,12 @@ void setup() {
     request->send(200, "text/plain", String(rightMotor.curSpeed));
   });
 
-    server.on("/updateL", HTTP_GET, [](AsyncWebServerRequest *request)
+  server.on("/updateL", HTTP_GET, [](AsyncWebServerRequest *request)
   {
     request->send(200, "text/plain", String(leftMotor.curSpeed));
   });
 
-     server.on("/step", HTTP_GET, [](AsyncWebServerRequest *request)
+  server.on("/step", HTTP_GET, [](AsyncWebServerRequest *request)
   {
     Serial.println("Step");
 
@@ -179,10 +177,9 @@ void setup() {
     stepRevsValue = stepRevs.toInt();
 
     Serial.print("Step Speed:");
-    Serial.println(stepSpeedValue);
+    Serial.println(stepSpeedValue);    
     
-    stepper.setSpeed(stepSpeedValue);
-    
+    Reload_StepperSetMoveTo(stepSpeedValue);
     
 //    gStepDelay = stepSpeedValue; 
 //    gStepFlag = 1;
@@ -198,12 +195,11 @@ void setup() {
 /*****************************************************************************************************************************/
 void loop() 
 {
-  stepper.runSpeed();
-
-if(!digitalRead(LimitSwitch))
-{
-  stepper.setSpeed(0);
-}
+  
+  if(!digitalRead(LimitSwitch))
+  {
+    Reload_StopContinuousStepper();
+  }
   
 //  if(gStepFlag == 1)
 //  {
