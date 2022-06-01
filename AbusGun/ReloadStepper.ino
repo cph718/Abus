@@ -27,7 +27,10 @@ void Reload_InitStepper()
 
 void Reload_SetHomePosition()  //Sets the current position as home
 {
-  gHomePosition = stepper.currentPosition();
+  if(gHomePosition == 0)
+  {
+    gHomePosition = stepper.currentPosition();
+  }
 }
 
 void Reload_FindHome()
@@ -47,7 +50,7 @@ void Reload_FindHome()
 
 void Reload_MoveToNextPos()
 {
-  static StepperPos currPos = unknown;
+  static StepperPos currPos = Home;
 
   if(currPos == unknown)
   {
@@ -74,19 +77,19 @@ void Reload_MoveToNextPos()
 
 void Reload_MoveToPos1()  //Position1 is were the ball can drop down
 {
-  Reload_StepperSetMoveTo(gHomePosition + 200);
+  Reload_StepperSetMoveTo(gHomePosition + 400);
   Serial.println("Stepper Position1");
 }
 
 void Reload_MoveToPos2()  //Position1 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(gHomePosition + 400);
+  Reload_StepperSetMoveTo(gHomePosition + 800);
   Serial.println("Stepper Position2");
 }
 
 void Reload_MoveToPos3()  //Position3 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(gHomePosition + 600);
+  Reload_StepperSetMoveTo(gHomePosition + 1500);
   Serial.println("Stepper Position3");
 }
 

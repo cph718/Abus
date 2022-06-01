@@ -17,14 +17,16 @@ hw_timer_t * timer = NULL;
 portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 int gInitFlag = 0;
+int gDebounceFlag = 0;
 
 unsigned long lastDetection = 0;
-unsigned long debounceTime = 250;
+unsigned long debounceTime = 1000;
  
 SemaphoreHandle_t syncSemaphore;
  
 void IRAM_ATTR ISR_FirePin() {
-    xSemaphoreGiveFromISR(syncSemaphore, NULL);
+    //xSemaphoreGiveFromISR(syncSemaphore, NULL);
+    gDebounceFlag = 1;
 }
 
 void IRAM_ATTR ISR_HomeSwitch() 
@@ -46,7 +48,7 @@ void setup()
   pinMode(HomeLimitSwitch, INPUT_PULLDOWN);
   attachInterrupt(HomeLimitSwitch, ISR_HomeSwitch, FALLING);
 
-  syncSemaphore = xSemaphoreCreateBinary();
+  //syncSemaphore = xSemaphoreCreateBinary();
 
   pinMode(FireTriggerPin, INPUT_PULLUP);
   attachInterrupt(FireTriggerPin, ISR_FirePin, FALLING);
@@ -75,14 +77,16 @@ void loop()
     Launcher_UpdateMotors();
   }
   
-   xSemaphoreTake(syncSemaphore, portMAX_DELAY);
- 
-  if(millis() - lastDetection > debounceTime)
+   //xSemaphoreTake(syncSemaphore, portMAX_DELAY);
+  if(gDebounceFlag == 1)
   {
-    Reload_MoveToNextPos();
-    Serial.println("flag reset");
+    if(millis() - lastDetection > debounceTime)
+    {
+      Reload_MoveToNextPos();
     
-    lastDetection = millis();
+     lastDetection = millis();
+    }
+    gDebounceFlag = 0;
   }
 }
 
