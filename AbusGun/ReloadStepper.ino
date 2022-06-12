@@ -5,61 +5,44 @@ Christian H
 
 #include <AccelStepper.h>
 
-#define StepPin       18
-#define DirPin        19
 #define StepPerRev    200
 #define motorInterfaceType 1
 
-enum StepperPos{unknown, Home, Load, Ready, Fire};
+enum StepperPos{unknown, FindingHome, Load, Ready, Fire};
 
-AccelStepper stepper = AccelStepper(motorInterfaceType, StepPin, DirPin);
+int gHomePositionFlag = 0;
+AccelStepper stepper = AccelStepper(motorInterfaceType, STEPPER_STEPPIN, STEPPER_DIRPIN);
 
-int gHomePosition = 0;
-
+//Global Functions
 void Reload_InitStepper()
 {
   //Set Stepper drive anti-clockwise
-  digitalWrite(DirPin, LOW);
+  Reload_StepperDirIn();
   stepper.setMaxSpeed(650);
   stepper.setAcceleration(1500);
   Serial.println("Stepper Initialised");
 }
 
-void Reload_SetHomePosition()  //Sets the current position as home
+void Reload_UpdateStepperStateMachine()
 {
-  if(gHomePosition == 0)
-  {
-    gHomePosition = stepper.currentPosition();
-  }
-}
-
-void Reload_FindHome()
-{
-  Reload_StepperDirIn(); //Set Direction to IN
-  Reload_SetStepperContinuousSpeed(100); //Set a slow speed to move towards limit switch
-  while(gHomePosition == 0) //Move until home position set by
-  {
-    Reload_NextStepperContinuousStep();
-  }
-  Reload_StopContinuousStepper();
-  Serial.print("Home set to:");
-  Serial.println(gHomePosition);
+  static StepperPos currPos = unknown;
   
-  RTOS_InitTask1(); //Start positional running
-}
-
-void Reload_MoveToNextPos()
-{
-  static StepperPos currPos = Home;
-
   if(currPos == unknown)
   {
     Reload_FindHome();
-    currPos = Home;
-  } else if(currPos == Home)
+    Serial.println("Stepper looking For home");
+    currPos = FindingHome;
+  } else if(currPos == FindingHome)
   {
-    Reload_MoveToPos1();
-    currPos = Load;
+    if(gHomePositionFlag == 1)
+    {
+      //Stop homing movement, set home position and start Standard running operation
+      stepper.setCurrentPosition(0);     
+      Serial.println("Stepper home position found");
+      RTOS_InitTask1();
+      Reload_MoveToPos1();
+      currPos = Load;
+    }
   } else if(currPos == Load)
   {
     Reload_MoveToPos2();
@@ -72,24 +55,49 @@ void Reload_MoveToNextPos()
   {
     Reload_MoveToPos1();
     currPos = Load;
+  } else
+  {
+    Reload_DisableHomingMovement();
+    gHomePositionFlag = 0;
+    currPos = unknown;
   }
+}
+
+void Reload_SetHomePositionFlag()  //Sets the current position as home
+{
+  gHomePositionFlag = 1;
+}
+
+void Reload_DisableHomingMovement()  //Disables and resets all movement
+{
+  RTOS_StopActiveTasks();
+  Reload_StopContinuousStepper();
+  Reload_StepperStopMoveTo();
+}
+
+//Local Functions
+void Reload_FindHome()
+{
+  Reload_StepperDirIn(); //Set Direction to IN
+  Reload_SetStepperContinuousSpeed(50); //Set a slow speed to move towards limit switch
+  RTOS_InitTask2();      //Enable continous homing movement
 }
 
 void Reload_MoveToPos1()  //Position1 is were the ball can drop down
 {
-  Reload_StepperSetMoveTo(gHomePosition + 400);
+  Reload_StepperSetMoveTo(-200);
   Serial.println("Stepper Position1");
 }
 
 void Reload_MoveToPos2()  //Position1 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(gHomePosition + 800);
+  Reload_StepperSetMoveTo(-400);
   Serial.println("Stepper Position2");
 }
 
 void Reload_MoveToPos3()  //Position3 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(gHomePosition + 1500);
+  Reload_StepperSetMoveTo(-800);
   Serial.println("Stepper Position3");
 }
 
@@ -97,6 +105,11 @@ void Reload_MoveToPos3()  //Position3 is were the ball is ready to be launched
 void Reload_StepperSetMoveTo(int PosInSteps)
 {
   stepper.moveTo(PosInSteps);
+}
+
+void Reload_StepperStopMoveTo()
+{
+  stepper.stop();
 }
 
 void Reload_StepperRunMoveTo()
@@ -124,10 +137,10 @@ void Reload_NextStepperContinuousStep()
 //Direction
 void Reload_StepperDirIn()
 {
-  digitalWrite(DirPin, LOW);
+  digitalWrite(STEPPER_DIRPIN, HIGH);
 }
 
 void Reload_StepperDirOut()
 {
-  digitalWrite(DirPin, HIGH);
+  digitalWrite(STEPPER_DIRPIN, LOW);
 }

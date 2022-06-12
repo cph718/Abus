@@ -58,7 +58,7 @@ void WebServer_Init()
   server.on("/init", HTTP_GET, [] (AsyncWebServerRequest *request) 
   {
     Serial.println("Initialising Motor Control");
-    Launcher_SetInitFlag();
+    //Launcher_SetInitFlag();
     
     request->send(200, "text/plain", "ok");
   });

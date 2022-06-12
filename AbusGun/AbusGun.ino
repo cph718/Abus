@@ -7,31 +7,29 @@ Christian H
  * TODO
  */
 
+//Board Pins
+#define ESC1_CTRLPIN         16
+#define ESC2_CTRLPIN         17
+#define LAUNCHER_SPEEDPIN    13
+#define LAUNCHER_ENABLEPIN   21
+#define FIRE_TRIGGERPIN      22
+#define STEPPER_DIRPIN       18
+#define STEPPER_STEPPIN      19
+#define STEPPER_HOMEPIN      23
+
+int gTriggerFlag = 0;
+int gStepperHomeFlag = 0;
+int debounceTime = 1000;
+unsigned long triggerLastDetection = 0;
  
-
-#define FireTriggerPin   21
-#define HomeLimitSwitch   4
-#define LauncherSpeedPin   2
-
-hw_timer_t * timer = NULL;
-portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-
-int gInitFlag = 0;
-int gDebounceFlag = 0;
-
-unsigned long lastDetection = 0;
-unsigned long debounceTime = 1000;
- 
-SemaphoreHandle_t syncSemaphore;
- 
-void IRAM_ATTR ISR_FirePin() {
-    //xSemaphoreGiveFromISR(syncSemaphore, NULL);
-    gDebounceFlag = 1;
+void IRAM_ATTR ISR_FirePin() 
+{
+  gTriggerFlag = 1;
 }
 
-void IRAM_ATTR ISR_HomeSwitch() 
+void IRAM_ATTR ISR_StepperHome() 
 {
-  Reload_SetHomePosition();
+  gStepperHomeFlag = 1;
 }
 
 /*****************************************************************************************************************************/
@@ -45,52 +43,51 @@ void setup()
   Serial.println("CPU Freq:");
   Serial.println(getCpuFrequencyMhz());
 
-  pinMode(HomeLimitSwitch, INPUT_PULLDOWN);
-  attachInterrupt(HomeLimitSwitch, ISR_HomeSwitch, FALLING);
+  pinMode(STEPPER_HOMEPIN, INPUT);
+  attachInterrupt(STEPPER_HOMEPIN, ISR_StepperHome, FALLING);
+  
+  pinMode(FIRE_TRIGGERPIN, INPUT_PULLUP);
+  attachInterrupt(FIRE_TRIGGERPIN, ISR_FirePin, FALLING);
 
-  //syncSemaphore = xSemaphoreCreateBinary();
+  pinMode(LAUNCHER_ENABLEPIN, INPUT_PULLUP);
 
-  pinMode(FireTriggerPin, INPUT_PULLUP);
-  attachInterrupt(FireTriggerPin, ISR_FirePin, FALLING);
-
-  Launcher_InitPins();
+  Launcher_Init();
   
   Reload_InitStepper();
 
   //WebServer_Init();
-
-  Reload_FindHome();
 }
 
 //TODO Add a way of reporting the current set speed
 /*****************************************************************************************************************************/
 void loop() 
 {  
-  if(gInitFlag == 1)
+  if(digitalRead(LAUNCHER_ENABLEPIN) == 0)
   {
-    Launcher_Init();
-    gInitFlag = 2;
-  }
-
-  if(gInitFlag == 2)
+    Launcher_SetPotSpeed();
+  } else
   {
-    Launcher_UpdateMotors();
+    Launcher_SetOffSpeed();
   }
   
-   //xSemaphoreTake(syncSemaphore, portMAX_DELAY);
-  if(gDebounceFlag == 1)
-  {
-    if(millis() - lastDetection > debounceTime)
-    {
-      Reload_MoveToNextPos();
-    
-     lastDetection = millis();
-    }
-    gDebounceFlag = 0;
-  }
-}
+  Launcher_UpdateMotors();
 
-void Launcher_SetInitFlag()
-{
-  gInitFlag = 1;
+  if(gStepperHomeFlag == 1)
+  {
+    Reload_DisableHomingMovement();
+    Reload_SetHomePositionFlag();
+    detachInterrupt(STEPPER_HOMEPIN); 
+    gStepperHomeFlag = 0;
+  }
+  
+  if(gTriggerFlag == 1)
+  {
+    if(millis() - triggerLastDetection > debounceTime)
+    {
+      Reload_UpdateStepperStateMachine();
+    
+     triggerLastDetection = millis();
+    }
+    gTriggerFlag = 0;
+  }
 }
