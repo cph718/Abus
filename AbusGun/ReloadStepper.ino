@@ -5,7 +5,7 @@ Christian H
 
 #include <AccelStepper.h>
 
-#define StepPerRev    200
+#define StepPerRev    3200
 #define motorInterfaceType 1
 
 enum StepperPos{unknown, FindingHome, Load, Ready, Fire};
@@ -18,8 +18,8 @@ void Reload_InitStepper()
 {
   //Set Stepper drive anti-clockwise
   Reload_StepperDirIn();
-  stepper.setMaxSpeed(650);
-  stepper.setAcceleration(1500);
+  stepper.setMaxSpeed(150000);
+  stepper.setAcceleration(300000);
   Serial.println("Stepper Initialised");
 }
 
@@ -79,25 +79,25 @@ void Reload_DisableHomingMovement()  //Disables and resets all movement
 void Reload_FindHome()
 {
   Reload_StepperDirIn(); //Set Direction to IN
-  Reload_SetStepperContinuousSpeed(50); //Set a slow speed to move towards limit switch
+  Reload_SetStepperContinuousSpeed(5000); //Set a slow speed to move towards limit switch
   RTOS_InitTask2();      //Enable continous homing movement
 }
 
 void Reload_MoveToPos1()  //Position1 is were the ball can drop down
 {
-  Reload_StepperSetMoveTo(-200);
+  Reload_StepperSetMoveTo(-2000);
   Serial.println("Stepper Position1");
 }
 
 void Reload_MoveToPos2()  //Position1 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(-400);
+  Reload_StepperSetMoveTo(-9000);
   Serial.println("Stepper Position2");
 }
 
 void Reload_MoveToPos3()  //Position3 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(-800);
+  Reload_StepperSetMoveTo(-12800);
   Serial.println("Stepper Position3");
 }
 

@@ -19,7 +19,7 @@ Christian H
 
 int gTriggerFlag = 0;
 int gStepperHomeFlag = 0;
-int debounceTime = 1000;
+int debounceTime = 500;
 unsigned long triggerLastDetection = 0;
  
 void IRAM_ATTR ISR_FirePin() 
@@ -51,7 +51,7 @@ void setup()
 
   pinMode(LAUNCHER_ENABLEPIN, INPUT_PULLUP);
 
-  Launcher_Init();
+ // Launcher_Init();
   
   Reload_InitStepper();
 
@@ -62,15 +62,15 @@ void setup()
 /*****************************************************************************************************************************/
 void loop() 
 {  
-  if(digitalRead(LAUNCHER_ENABLEPIN) == 0)
-  {
-    Launcher_SetPotSpeed();
-  } else
-  {
-    Launcher_SetOffSpeed();
-  }
+//  if(digitalRead(LAUNCHER_ENABLEPIN) == 0)
+//  {
+//    Launcher_SetPotSpeed();
+//  } else
+//  {
+//    Launcher_SetOffSpeed();
+//  }
   
-  Launcher_UpdateMotors();
+  //Launcher_UpdateMotors();
 
   if(gStepperHomeFlag == 1)
   {
