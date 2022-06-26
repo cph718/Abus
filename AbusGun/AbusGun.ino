@@ -51,7 +51,7 @@ void setup()
 
   pinMode(LAUNCHER_ENABLEPIN, INPUT_PULLUP);
 
- // Launcher_Init();
+  Launcher_Init();
   
   Reload_InitStepper();
 
@@ -62,15 +62,15 @@ void setup()
 /*****************************************************************************************************************************/
 void loop() 
 {  
-//  if(digitalRead(LAUNCHER_ENABLEPIN) == 0)
-//  {
-//    Launcher_SetPotSpeed();
-//  } else
-//  {
-//    Launcher_SetOffSpeed();
-//  }
+  if(digitalRead(LAUNCHER_ENABLEPIN) == 0)
+  {
+    Launcher_SetPotSpeed();
+  } else
+  {
+    Launcher_SetOffSpeed();
+  }
   
-  //Launcher_UpdateMotors();
+  Launcher_UpdateMotors();
 
   if(gStepperHomeFlag == 1)
   {

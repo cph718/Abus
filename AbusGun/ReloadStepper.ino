@@ -18,8 +18,8 @@ void Reload_InitStepper()
 {
   //Set Stepper drive anti-clockwise
   Reload_StepperDirIn();
-  stepper.setMaxSpeed(150000);
-  stepper.setAcceleration(300000);
+  stepper.setMaxSpeed(40000);
+  stepper.setAcceleration(100000);
   Serial.println("Stepper Initialised");
 }
 
@@ -91,13 +91,13 @@ void Reload_MoveToPos1()  //Position1 is were the ball can drop down
 
 void Reload_MoveToPos2()  //Position1 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(-9000);
+  Reload_StepperSetMoveTo(-6000);
   Serial.println("Stepper Position2");
 }
 
 void Reload_MoveToPos3()  //Position3 is were the ball is ready to be launched
 {
-  Reload_StepperSetMoveTo(-12800);
+  Reload_StepperSetMoveTo(-11000);
   Serial.println("Stepper Position3");
 }
 
