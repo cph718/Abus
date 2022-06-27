@@ -29,18 +29,24 @@ void Reload_UpdateStepperStateMachine()
   
   if(currPos == unknown)
   {
-    Reload_FindHome();
-    Serial.println("Stepper looking For home");
-    currPos = FindingHome;
+    //Check if home already
+    if(!(digitalRead(STEPPER_HOMEPIN)))
+    {
+      detachInterrupt(STEPPER_HOMEPIN); 
+      Reload_HomeFound();
+      currPos = Load;
+    } else
+    {
+      Reload_FindHome();
+      currPos = FindingHome;
+    }
+
   } else if(currPos == FindingHome)
   {
     if(gHomePositionFlag == 1)
     {
       //Stop homing movement, set home position and start Standard running operation
-      stepper.setCurrentPosition(0);     
-      Serial.println("Stepper home position found");
-      RTOS_InitTask1();
-      Reload_MoveToPos1();
+      Reload_HomeFound();
       currPos = Load;
     }
   } else if(currPos == Load)
@@ -78,9 +84,18 @@ void Reload_DisableHomingMovement()  //Disables and resets all movement
 //Local Functions
 void Reload_FindHome()
 {
+  Serial.println("Stepper looking For home");
   Reload_StepperDirIn(); //Set Direction to IN
   Reload_SetStepperContinuousSpeed(5000); //Set a slow speed to move towards limit switch
   RTOS_InitTask2();      //Enable continous homing movement
+}
+
+void Reload_HomeFound()
+{
+  stepper.setCurrentPosition(0);     
+  Serial.println("Stepper home position found");
+  RTOS_InitTask1();
+  Reload_MoveToPos1();
 }
 
 void Reload_MoveToPos1()  //Position1 is were the ball can drop down

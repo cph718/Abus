@@ -41,13 +41,13 @@ void Launcher_UpdateMotors()
 {
   rightMotor.curSpeed = Reload_CalculateMotorSpeed(rightMotor.goalSpeed, rightMotor.curSpeed, rightMotor.Ramp);
   rightMotor.motorServo.writeMicroseconds(rightMotor.curSpeed + MOTDEFAULT);
-  Serial.print("Right Motor Current Speed:");
-  Serial.println(rightMotor.curSpeed);
+  //Serial.print("Right Motor Current Speed:");
+  //Serial.println(rightMotor.curSpeed);
     
   leftMotor.curSpeed = Reload_CalculateMotorSpeed(leftMotor.goalSpeed, leftMotor.curSpeed, leftMotor.Ramp);
   leftMotor.motorServo.writeMicroseconds(leftMotor.curSpeed + MOTDEFAULT);
-  Serial.print("Left Motor Current Speed:");
-  Serial.println(leftMotor.curSpeed);
+  //Serial.print("Left Motor Current Speed:");
+  //Serial.println(leftMotor.curSpeed);
   delay(200);
 }
 
