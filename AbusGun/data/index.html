@@ -66,71 +66,75 @@
 
 </head>
 <body>
-
-    <h2>Direct Motor Control</h2>
-
-    <div>
-    <p>Select Init to start/restart motor control. Put in value of 0-1000 for speed and ramp and select start to drive motors</p>
-    </div>
-
-    <div>
-    <button class="button-axes" data-direction="init">
-        Init
-    </button>
-    </div>
+    
+    <h1>Stepper Control</h1>
     <br>
-    <br>
+    <div>
+    <h3>Positional Motor Control</h3>
+    <p>Enter speed, acceleration and position.</p>
+    </div>
 
     <label>Speed:</label> 
-    <input id="speedID" type="text" name="speedVal" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
+    <input id="PosSpeedID" type="text" name="speedVal" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
     <br>
 
-    <label>Ramp:</label>
-    <input id="rampID" type="text" name="rampVal" value="1" onkeyup="formChanged()" onchange="formChanged()"/>
+    <label>Acceleration:</label>
+    <input id="PosAccelID" type="text" name="rampVal" value="1" onkeyup="formChanged()" onchange="formChanged()"/>
+    <br>
+
+    <label>Position:</label>
+    <input id="PosPositionID" type="text" name="rampVal" value="1" onkeyup="formChanged()" onchange="formChanged()"/>
     <br>
 
     <div>
-    <button class="button-axes" data-direction="start">
+    <button class="button-axes" data-direction="posstart">
       Start
     </button>
     </div>
 
     <div>
-    <button class="button-axes" data-direction="stop">
+    <button class="button-axes" data-direction="posstop">
      Stop
     </button>
     <div>
 
-        Current right motor speed:<p id="rightSpeedID"></p>
-        Current left motor speed:<p id="leftSpeedID"></p>
+    Set positional move Speed:<p id="PosSpeed"></p>
+    Set positional move acceleration:<p id="PosAccel"></p>
 
+    <hr>
+    <hr>
+    <br>
+    <h3>Continuous Stepper Control</h3>
+    <p>Enter speed, acceleration then push start to activate. Up key is up and down is ... left.</p>
 
-    <label>Stepper Speed:</label> 
-    <input id="StepperSpeedID" type="text" name="stepperSpeed" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
+    <label>Speed:</label> 
+    <input id="ConSpeedID" type="text" name="stepperSpeed" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
     <br>
 
-    <label>Stepper Revolutions:</label> 
-    <input id="StepperRevID" type="text" name="stepperRevs" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
+    <label>Acceleration:</label> 
+    <input id="ConAccelID" type="text" name="stepperRevs" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
     <br>
 
     <div>
-    <button class="button-axes" data-direction="step">
-     Step
+    <button class="button-axes" data-direction="constart">
+     Start
     </button>
     <div>
 
 
 <script type="text/javascript">
-    var speedParam = "0";
-    var rampParam = "0";
-    var stepSpeedParam = "0";
-    var stepRevParam = "0";
+    var PosSpeedParam = "0";
+    var PosAccelParam = "0";
+    var PosPositionParam = "0";
+    var ConSpeedParam = "0";
+    var ConAccelParam = "0";
 
     function formChanged() {
-        speedParam = document.getElementById("speedID").value;
-        rampParam = document.getElementById("rampID").value;
-        stepSpeedParam = document.getElementById("StepperSpeedID").value;
-        stepRevParam = document.getElementById("StepperRevID").value;
+        PosSpeedParam = document.getElementById("PosSpeedID").value;
+        PosAccelParam = document.getElementById("PosAccelID").value;
+        PosPositionParam = document.getElementById("PosPositionID").value;
+        ConSpeedParam = document.getElementById("ConSpeedID").value;
+        ConAccelParam = document.getElementById("ConAccelID").value;
     }
 
     // Event Listeners
@@ -152,9 +156,9 @@
     // Execute to robot
     function execute(command) 
     {
-        console.log("sending: " + command + "?speedval=" + speedParam + "&rampval=" + rampParam + "&stepspeedval=" + stepSpeedParam + "&steprevval=" + stepRevParam);
+        console.log("sending: " + command + "?posspeedval=" + PosSpeedParam + "&posaccelval=" + PosAccelParam + "&pospositionval=" + PosPositionParam + "&conspeedval=" + ConSpeedParam + "&conaccelval=" + ConAccelParam);
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/" + command + "?speedval=" + speedParam + "&rampval=" + rampParam + "&stepspeedval=" + stepSpeedParam + "&steprevval=" + stepRevParam, true);
+        xhr.open("GET", "/" + command + "?posspeedval=" + PosSpeedParam + "&posaccelval=" + PosAccelParam + "&pospositionval=" + PosPositionParam + "&conspeedval=" + ConSpeedParam + "&conaccelval=" + ConAccelParam, true);
         xhr.send();
     }
 
@@ -163,10 +167,10 @@
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-                document.getElementById('rightSpeedID').innerHTML = parseFloat(this.responseText);
+                document.getElementById('PosSpeed').innerHTML = parseFloat(this.responseText);
             }
         };
-        xhttp.open("GET", "/updateR", true);
+        xhttp.open("GET", "/updateSpeed", true);
         xhttp.send();
     }, 50 );
 
@@ -175,10 +179,10 @@
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
-                document.getElementById('leftSpeedID').innerHTML = parseFloat(this.responseText);
+                document.getElementById('PosAccel').innerHTML = parseFloat(this.responseText);
             }
         };
-        xhttp.open("GET", "/updateL", true);
+        xhttp.open("GET", "/updateAccel", true);
         xhttp.send();
     }, 50 );
 
