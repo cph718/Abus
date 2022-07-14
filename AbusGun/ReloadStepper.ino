@@ -8,118 +8,108 @@ Christian H
 #define StepPerRev    3200
 #define motorInterfaceType 1
 
-enum StepperPos{unknown, FindingHome, Load, Ready, Fire};
 
-int gHomePositionFlag = 0;
+
+StepperState currState = defaultState;
 AccelStepper stepper = AccelStepper(motorInterfaceType, STEPPER_STEPPIN, STEPPER_DIRPIN);
 
+int nextSpeed, nextAccel, nextPos;
+
 //Global Functions
-void Reload_InitStepper()
-{
-  //Set Stepper drive anti-clockwise
-  Reload_StepperDirIn();
-  stepper.setMaxSpeed(40000);
-  stepper.setAcceleration(100000);
-  Serial.println("Stepper Initialised");
-}
+
 
 void Reload_UpdateStepperStateMachine()
 {
-  static StepperPos currPos = unknown;
-  
-  if(currPos == unknown)
+  if(currState == defaultState)
   {
-    //Check if home already
-    if(!(digitalRead(STEPPER_HOMEPIN)))
-    {
-      detachInterrupt(STEPPER_HOMEPIN); 
-      Reload_HomeFound();
-      currPos = Load;
-    } else
-    {
-      Reload_FindHome();
-      currPos = FindingHome;
-    }
 
-  } else if(currPos == FindingHome)
+  } 
+  else if(currState == positionalInit)
   {
-    if(gHomePositionFlag == 1)
+    Reload_SetUpMoveTo(nextSpeed, nextAccel);
+    Reload_StepperSetMoveTo(nextPos);
+
+    currState = positionalMoving;
+    
+  } 
+  else if(currState == positionalMoving)
+  {
+    Reload_StepperRunMoveTo();
+    
+    if(!stepper.isRunning())
     {
-      //Stop homing movement, set home position and start Standard running operation
-      Reload_HomeFound();
-      currPos = Load;
+      currState = positionalStop;
     }
-  } else if(currPos == Load)
+    
+  } 
+  else if(currState == positionalStop)
   {
-    Reload_MoveToPos2();
-    currPos = Ready;
-  } else if(currPos == Ready)
+    currState = defaultState;
+    
+  } 
+  else if(currState == continuousInit)
   {
-    Reload_MoveToPos3();
-    currPos = Fire;
-  } else if(currPos == Fire)
+
+  } 
+  else if(currState == continousMoving)
   {
-    Reload_MoveToPos1();
-    currPos = Load;
+
+  } 
+  else if(currState == ContinousActive)
+  {
+
   } else
   {
-    Reload_DisableHomingMovement();
-    gHomePositionFlag = 0;
-    currPos = unknown;
+
   }
 }
 
-void Reload_SetHomePositionFlag()  //Sets the current position as home
+int Reload_ChangeStateMachine(StepperState nextState)
 {
-  gHomePositionFlag = 1;
+  if((currState == defaultState) | (currState == ContinousActive))
+  {
+    currState = nextState;
+    Serial.print("New State:");
+    Serial.println(nextState);
+    return  1;
+  }
+
+  Serial.print("State change denied");
+  return 0;
 }
 
-void Reload_DisableHomingMovement()  //Disables and resets all movement
+void Reload_SetNextParamaters(int speedValue, int accelValue, int posValue)
 {
-  RTOS_StopActiveTasks();
-  Reload_StopContinuousStepper();
-  Reload_StepperStopMoveTo();
+  nextSpeed =  speedValue;
+  nextAccel = accelValue;
+  nextPos = posValue;
 }
 
 //Local Functions
-void Reload_FindHome()
+void Reload_SetUpMoveTo(int posSpeed, int posAccel)
 {
-  Serial.println("Stepper looking For home");
-  Reload_StepperDirIn(); //Set Direction to IN
-  Reload_SetStepperContinuousSpeed(5000); //Set a slow speed to move towards limit switch
-  RTOS_InitTask2();      //Enable continous homing movement
+  //Set Stepper drive anti-clockwise
+  stepper.setMaxSpeed(posSpeed);
+  Serial.print("Speed Set:");
+  Serial.println(posSpeed);
+  stepper.setAcceleration(posAccel);
+  Serial.print("Accel Set:");
+  Serial.println(posAccel);
 }
 
-void Reload_HomeFound()
+void Reload_SetUpContinous(int conSpeed, int conAccel)
 {
-  stepper.setCurrentPosition(0);     
-  Serial.println("Stepper home position found");
-  RTOS_InitTask1();
-  Reload_MoveToPos1();
-}
-
-void Reload_MoveToPos1()  //Position1 is were the ball can drop down
-{
-  Reload_StepperSetMoveTo(-2000);
-  Serial.println("Stepper Position1");
-}
-
-void Reload_MoveToPos2()  //Position1 is were the ball is ready to be launched
-{
-  Reload_StepperSetMoveTo(-6000);
-  Serial.println("Stepper Position2");
-}
-
-void Reload_MoveToPos3()  //Position3 is were the ball is ready to be launched
-{
-  Reload_StepperSetMoveTo(-11000);
-  Serial.println("Stepper Position3");
+  //Set Stepper drive anti-clockwise
+  stepper.setSpeed(conSpeed);
+  stepper.setAcceleration(conAccel);
 }
 
 //Positional Movement
 void Reload_StepperSetMoveTo(int PosInSteps)
 {
   stepper.moveTo(PosInSteps);
+    Serial.print("Move Position:");
+  Serial.println(PosInSteps);
 }
 
 void Reload_StepperStopMoveTo()

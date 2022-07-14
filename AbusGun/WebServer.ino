@@ -3,10 +3,12 @@
 #include <ESPAsyncWebServer.h>
 #include "SPIFFS.h"
 
-const char* PARAM_SPEED = "speedval";
-const char* PARAM_RAMP = "rampval";
-const char* PARAM_STEPSPEED = "stepspeedval";
-const char* PARAM_STEPREVS = "steprevval";
+
+const char* PARAM_POSSPEED = "posspeedval";
+const char* PARAM_POSACCEL = "posaccelval";
+const char* PARAM_POSPOSITION = "pospositionval";
+const char* PARAM_CONSPEED = "conspeedval";
+const char* PARAM_CONACCEL = "conaccelval";
 
 /* Global Variables */
 // REPLACE WITH YOUR NETWORK CREDENTIALS
@@ -54,81 +56,58 @@ void WebServer_Init()
     request->send(SPIFFS, "/phone.html", String(), false);
   });
 
-      // Receive an HTTP GET request
-  server.on("/init", HTTP_GET, [] (AsyncWebServerRequest *request) 
-  {
-    Serial.println("Initialising Motor Control");
-    //Launcher_SetInitFlag();
-    
-    request->send(200, "text/plain", "ok");
-  });
-
   // Receive an HTTP GET request
-  server.on("/start", HTTP_GET, [] (AsyncWebServerRequest *request) 
+  server.on("/posstart", HTTP_GET, [] (AsyncWebServerRequest *request) 
   {
-    Serial.println("Start");
-    String speedValueS, rampValueS;
-    int speedValue, rampValue;
-    speedValueS = request->getParam(PARAM_SPEED)->value();
+    Serial.println("Positional Start");
+    
+    String speedValueS, accelValueS, posValueS;
+    int speedValue, accelValue, posValue;
+    speedValueS = request->getParam(PARAM_POSSPEED)->value();
     speedValue = speedValueS.toInt();
-    rampValueS = request->getParam(PARAM_RAMP)->value();
-    rampValue = rampValueS.toInt();
+    accelValueS = request->getParam(PARAM_POSACCEL)->value();
+    accelValue = accelValueS.toInt();
+    posValueS = request->getParam(PARAM_POSPOSITION)->value();
+    posValue = posValueS.toInt();
     
-    if(speedValue <= 1000 && speedValue >= 0)
+    if((speedValue >= 0) & (accelValue >= 1))
     {
-      Launcher_SetRightGoalSpeed(speedValue);
-      Launcher_SetLeftGoalSpeed(speedValue);
-      Serial.print(" Goal speed set:");
-      Serial.println(speedValue);
-    }
-    
-    if(rampValue <= 1000 && rampValue >= 0)
-    {
-      Launcher_SetRightRamp(rampValue);
-      Launcher_SetLeftRamp(rampValue);
-      Serial.print("Ramp set:");
-      Serial.println(rampValue);
+      
+      if(Reload_ChangeStateMachine(positionalInit))
+      {
+        Reload_SetNextParamaters(speedValue, accelValue, posValue);
+      }
     }
     
     request->send(200, "text/plain", "ok");
   });
 
     // Receive an HTTP GET request
-  server.on("/stop", HTTP_GET, [] (AsyncWebServerRequest *request) 
+  server.on("/posstop", HTTP_GET, [] (AsyncWebServerRequest *request) 
   {
-    Serial.println("Stop");
-    Launcher_SetRightGoalSpeed(0);
-    Launcher_SetLeftGoalSpeed(0);
-    Launcher_SetRightRamp(50);
-    Launcher_SetLeftRamp(50);
-    request->send(200, "text/plain", "ok");
+    Serial.println("Positional Stop");
+
+    //Stop move to function
   });
-
-  server.on("/updateR", HTTP_GET, [](AsyncWebServerRequest *request)
+  
+  server.on("/constart", HTTP_GET, [](AsyncWebServerRequest *request)
   {
-    request->send(200, "text/plain", String(rightMotor.curSpeed));
-  });
+    Serial.println("Continous Start");
 
-  server.on("/updateL", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    request->send(200, "text/plain", String(leftMotor.curSpeed));
-  });
+    String cSpeedValueS, cAccelValueS;
+    int cSpeedValue, cAccelValue;
+    cSpeedValueS = request->getParam(PARAM_POSSPEED)->value();
+    cSpeedValue = cSpeedValueS.toInt();
+    cAccelValueS = request->getParam(PARAM_POSACCEL)->value();
+    cAccelValue = cAccelValueS.toInt();
 
-  server.on("/step", HTTP_GET, [](AsyncWebServerRequest *request)
-  {
-    Serial.println("Step");
-
-    String stepSpeed, stepRevs;
-    int stepSpeedValue, stepRevsValue;
-    stepSpeed = request->getParam(PARAM_STEPSPEED)->value();
-    stepSpeedValue = stepSpeed.toInt();
-    stepRevs = request->getParam(PARAM_STEPREVS)->value();
-    stepRevsValue = stepRevs.toInt();
-
-    Serial.print("Step Speed:");
-    Serial.println(stepSpeedValue);    
-    
-    Reload_StepperSetMoveTo(stepSpeedValue);
+    if((cSpeedValue >= 0) & (cAccelValue >= 1))
+    {
+      if(Reload_ChangeStateMachine(continuousInit))
+      {
+        Reload_SetNextParamaters(cSpeedValue, cAccelValue, 0);
+      }
+    }
 
     request->send(200, "text/plain", "ok");
   });

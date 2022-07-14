@@ -98,9 +98,6 @@
     </button>
     <div>
 
-    Set positional move Speed:<p id="PosSpeed"></p>
-    Set positional move acceleration:<p id="PosAccel"></p>
-
     <hr>
     <hr>
     <br>
@@ -161,30 +158,6 @@
         xhr.open("GET", "/" + command + "?posspeedval=" + PosSpeedParam + "&posaccelval=" + PosAccelParam + "&pospositionval=" + PosPositionParam + "&conspeedval=" + ConSpeedParam + "&conaccelval=" + ConAccelParam, true);
         xhr.send();
     }
-
-    setInterval(function ( ) 
-    {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById('PosSpeed').innerHTML = parseFloat(this.responseText);
-            }
-        };
-        xhttp.open("GET", "/updateSpeed", true);
-        xhttp.send();
-    }, 50 );
-
-    setInterval(function ( ) 
-    {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                document.getElementById('PosAccel').innerHTML = parseFloat(this.responseText);
-            }
-        };
-        xhttp.open("GET", "/updateAccel", true);
-        xhttp.send();
-    }, 50 );
 
 </script>
 </body>
