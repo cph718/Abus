@@ -12,12 +12,12 @@ const char* PARAM_CONACCEL = "conaccelval";
 
 /* Global Variables */
 // REPLACE WITH YOUR NETWORK CREDENTIALS
-const char* ssid = "Internat";
-const char* password = "p1kachu1";
+const char* ssid = "lazersafe";
+const char* password = "#We*Sell*Lasers@World!";
 
 // replace staticIP and gateway address based on your home router settings
-IPAddress staticIP(192, 168, 1, 200);
-IPAddress gateway(192, 168, 1, 1);
+IPAddress staticIP(192, 168, 106, 194);
+IPAddress gateway(192, 168, 106, 253);
 IPAddress subnet(255, 255, 0, 0);
 
 AsyncWebServer server(80);
@@ -108,6 +108,30 @@ void WebServer_Init()
         Reload_SetNextParamaters(cSpeedValue, cAccelValue, 0);
       }
     }
+
+    request->send(200, "text/plain", "ok");
+  });
+
+  server.on("/conup", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    Serial.println("Continous Up");
+    Reload_UpdateContinuousState(1);
+
+    request->send(200, "text/plain", "ok");
+  });
+
+  server.on("/condown", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    Serial.println("Continous Down");
+    Reload_UpdateContinuousState(2);
+
+    request->send(200, "text/plain", "ok");
+  });
+
+  server.on("/constop", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    Serial.println("Continous Stop");
+    Reload_UpdateContinuousState(0);
 
     request->send(200, "text/plain", "ok");
   });

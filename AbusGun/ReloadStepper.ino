@@ -13,7 +13,7 @@ Christian H
 StepperState currState = defaultState;
 AccelStepper stepper = AccelStepper(motorInterfaceType, STEPPER_STEPPIN, STEPPER_DIRPIN);
 
-int nextSpeed, nextAccel, nextPos;
+int gNextSpeed, gNextAccel, gNextPos, gConState;
 
 //Global Functions
 
@@ -26,8 +26,8 @@ void Reload_UpdateStepperStateMachine()
   } 
   else if(currState == positionalInit)
   {
-    Reload_SetUpMoveTo(nextSpeed, nextAccel);
-    Reload_StepperSetMoveTo(nextPos);
+    Reload_SetUpMoveTo(gNextSpeed, gNextAccel);
+    Reload_StepperSetMoveTo(gNextPos);
 
     currState = positionalMoving;
     
@@ -49,15 +49,35 @@ void Reload_UpdateStepperStateMachine()
   } 
   else if(currState == continuousInit)
   {
+    Reload_SetUpContinous(gNextSpeed, gNextAccel);
 
-  } 
-  else if(currState == continousMoving)
-  {
-
-  } 
+    currState = ContinousActive;
+    
+  }
   else if(currState == ContinousActive)
   {
+    if(gConState == 2) //move reverse state
+    {
+      Reload_StepperDirUp();
+      currState = continousMoving;
+      
+    } else if (gConState == 1) //move forward state
+    {
+      Reload_StepperDirDown();
+      currState = continousMoving;
+    } else //stop state
+    {
+      //stop state
+    }
+  }
+  else if(currState == continousMoving)
+  {
+    Reload_NextStepperContinuousStep();
 
+    if(gConState == 0)
+    {
+      currState = ContinousActive;
+    }
   } else
   {
 
@@ -78,11 +98,18 @@ int Reload_ChangeStateMachine(StepperState nextState)
   return 0;
 }
 
+void Reload_UpdateContinuousState(int conState)
+{
+  gConState = conState;
+  Serial.print("New State:");
+  Serial.println(conState);
+}
+
 void Reload_SetNextParamaters(int speedValue, int accelValue, int posValue)
 {
-  nextSpeed =  speedValue;
-  nextAccel = accelValue;
-  nextPos = posValue;
+  gNextSpeed =  speedValue;
+  gNextAccel = accelValue;
+  gNextPos = posValue;
 }
 
 //Local Functions
@@ -101,7 +128,11 @@ void Reload_SetUpContinous(int conSpeed, int conAccel)
 {
   //Set Stepper drive anti-clockwise
   stepper.setSpeed(conSpeed);
+  Serial.print("Speed Set:");
+  Serial.println(conSpeed);
   stepper.setAcceleration(conAccel);
+  Serial.print("Accel Set:");
+  Serial.println(conAccel);
 }
 
 //Positional Movement
@@ -140,12 +171,12 @@ void Reload_NextStepperContinuousStep()
 }
 
 //Direction
-void Reload_StepperDirIn()
+void Reload_StepperDirUp()
 {
   digitalWrite(STEPPER_DIRPIN, HIGH);
 }
 
-void Reload_StepperDirOut()
+void Reload_StepperDirDown()
 {
   digitalWrite(STEPPER_DIRPIN, LOW);
 }

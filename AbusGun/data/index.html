@@ -45,30 +45,59 @@
     }
 
     button .arrow {
-          display: inline-block;
-          width: 0;
-          height: 0;
-          vertical-align: middle;
-          font-size: 0.35em;
-          line-height: 0;
-          border: 0 solid transparent;
-          color: inherit;
+        display: inline-block;
+        width: 0;
+        height: 0;
+        vertical-align: middle;
+        font-size: 0.35em;
+        line-height: 0;
+        border: 0 solid transparent;
+        color: inherit;
       }
 
     button .arrow-right {
-          border-left-color: #999;
-          border-left-width: 1em;
-          border-bottom-width: 1em;
-          border-top-width: 1em;
-          margin-right: -0.25em;
+        border-left-color: #999;
+        border-left-width: 1em;
+        border-bottom-width: 1em;
+        border-top-width: 1em;
+        margin-right: -0.25em;
       }
     </style>
+
+    <script type="text/javascript">
+        var sendCommand = 1;
+
+        //Key Pressed
+        document.addEventListener("keydown", function (evt) {
+            if (evt.keyCode == "38" && sendCommand) {   // up arrow
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "conup", true);
+                xhttp.send();
+                sendCommand = 0;
+            }
+            else if (evt.keyCode == "40" && sendCommand) {  // down arrow
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "condown", true);
+                xhttp.send();
+                sendCommand = 0;
+            }
+        });
+
+        //Key Released
+        document.addEventListener("keyup", function (evt) {
+            if(evt.keyCode == "37" || evt.keyCode == "38" || evt.keyCode == "39" || evt.keyCode == "40") {
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "constop", true);
+                xhttp.send();
+                sendCommand = 1;
+            }
+        });
+    </script>
 
 </head>
 <body>
     
     <h1>Stepper Control</h1>
-    <br>
     <div>
     <h3>Positional Motor Control</h3>
     <p>Enter speed, acceleration and position.</p>
@@ -88,21 +117,19 @@
 
     <div>
     <button class="button-axes" data-direction="posstart">
-      Start
+        Start
     </button>
     </div>
 
     <div>
     <button class="button-axes" data-direction="posstop">
-     Stop
+        Stop
     </button>
     <div>
 
     <hr>
-    <hr>
-    <br>
     <h3>Continuous Stepper Control</h3>
-    <p>Enter speed, acceleration then push start to activate. Up key is up and down is ... left.</p>
+    <p>Enter speed, acceleration then push start to activate. Use Buttons or keyboard to move</p>
 
     <label>Speed:</label> 
     <input id="ConSpeedID" type="text" name="stepperSpeed" value="0" onkeyup="formChanged()" onchange="formChanged()"/>
@@ -114,9 +141,31 @@
 
     <div>
     <button class="button-axes" data-direction="constart">
-     Start
+        Start
     </button>
     <div>
+
+    <br>
+    <br>
+    <br>
+    <button class="button" onmousedown="toggleCheckbox('conup');" ontouchstart="toggleCheckbox('conup');" onmouseup="toggleCheckbox('constop');" ontouchend="toggleCheckbox('constop');">Up</button>
+   	<script>
+   	    function toggleCheckbox(x) {
+   	        var xhr = new XMLHttpRequest();
+    	    xhr.open("GET", "/" + x, true);
+     	    xhr.send();
+  	    }
+  	</script>
+
+    <br>
+    <button class="button" onmousedown="toggleCheckbox('condown');" ontouchstart="toggleCheckbox('condown');" onmouseup="toggleCheckbox('constop');" ontouchend="toggleCheckbox('constop');">Down</button>
+    <script>
+    function toggleCheckbox(x) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/" + x, true);
+    xhr.send();
+    }
+    </script>
 
 
 <script type="text/javascript">
