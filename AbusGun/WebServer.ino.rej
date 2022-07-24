@@ -1,0 +1,9 @@
+diff a/AbusGun/WebServer.ino b/AbusGun/WebServer.ino	(rejected hunks)
+@@ -12,7 +12,6 @@
+ 
+ /* Global Variables */
+ // REPLACE WITH YOUR NETWORK CREDENTIALS
+-const char* password = "p1kachu1";
+ const char* ssid = "lazersafe";
+ const char* password = "#We*Sell*Lasers@World!";
+ 

@@ -49,34 +49,35 @@ void Reload_UpdateStepperStateMachine()
   } 
   else if(currState == continuousInit)
   {
-    Reload_SetUpContinous(gNextSpeed, gNextAccel);
+    Reload_SetUpContinuous(gNextSpeed, gNextAccel);
 
-    currState = ContinousActive;
+    currState = continuousActive;
     
   }
-  else if(currState == ContinousActive)
+  else if(currState == continuousActive)
   {
     if(gConState == 2) //move reverse state
     {
-      Reload_StepperDirUp();
-      currState = continousMoving;
+      //Set Direction
+      currState = continuousMoving;
       
     } else if (gConState == 1) //move forward state
     {
-      Reload_StepperDirDown();
-      currState = continousMoving;
+      
+      currState = continuousMoving;
     } else //stop state
     {
+      Set Direction
       //stop state
     }
   }
-  else if(currState == continousMoving)
+  else if(currState == continuousMoving)
   {
     Reload_NextStepperContinuousStep();
 
     if(gConState == 0)
     {
-      currState = ContinousActive;
+      currState = continuousActive;
     }
   } else
   {
@@ -86,7 +87,7 @@ void Reload_UpdateStepperStateMachine()
 
 int Reload_ChangeStateMachine(StepperState nextState)
 {
-  if((currState == defaultState) | (currState == ContinousActive))
+  if((currState == defaultState) | (currState == continuousActive))
   {
     currState = nextState;
     Serial.print("New State:");
@@ -124,7 +125,7 @@ void Reload_SetUpMoveTo(int posSpeed, int posAccel)
   Serial.println(posAccel);
 }
 
-void Reload_SetUpContinous(int conSpeed, int conAccel)
+void Reload_SetUpContinuous(int conSpeed, int conAccel)
 {
   //Set Stepper drive anti-clockwise
   stepper.setSpeed(conSpeed);
@@ -154,7 +155,7 @@ void Reload_StepperRunMoveTo()
 }
 
 
-//Continous Running
+//Continuous Running
 void Reload_SetStepperContinuousSpeed(int Speed)
 {
   stepper.setSpeed(Speed);

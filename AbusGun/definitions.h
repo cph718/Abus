@@ -1,3 +1,3 @@
 
 
-enum StepperState {defaultState, positionalInit, positionalMoving, positionalStop, continuousInit, continousMoving, ContinousActive};
+enum StepperState {defaultState, positionalInit, positionalMoving, positionalStop, continuousInit, continuousMoving, continuousActive};
